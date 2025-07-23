@@ -1,0 +1,34 @@
+<resources>
+    <string name="english">English</string>
+    <string name="persian">Persian</string>
+    <string name="italian">Italian</string>
+    <string name="select_language">Select Language</string>
+    <string name="app_name">Secure Notes</string>
+    <string name="enter_pin">Enter PIN</string>
+    <string name="set_pin">Set PIN and Security Question</string>
+    <string name="pin_label">PIN (4 digits)</string>
+    <string name="security_question_label">Security Question</string>
+    <string name="security_answer_label">Your Answer</string>
+    <string name="submit">Submit</string>
+    <string name="login">Login</string>
+    <string name="forgot_pin">Forgot/Reset PIN</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="question_prompt">Security Question:</string>
+    <string name="confirm_answer">Confirm Answer</string>
+    <string name="new_pin">New PIN</string>
+    <string name="notes_list">Your Notes</string>
+    <string name="logout">Logout</string>
+    <string name="error_invalid_input">Please fill all fields correctly.</string>
+    <string name="no_security_question">There are no security questions!</string>
+    <string name="wrong_answer">Wrong answer!</string>
+    <string name="set_new_pin">Set new PIN</string>
+    <string name="pin_length_error">The PIN is short.</string>
+    <string name="your_notes">Your Notes</string>
+    <string name="no_notes_found">No notes found.</string>
+    <string name="save">save</string>
+    <string name="cancel">cancel</string>
+    <string name="size">size</string>
+    <string name="color">color</string>
+
+
+</resources>

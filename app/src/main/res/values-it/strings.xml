@@ -1,0 +1,32 @@
+<resources>
+    <string name="english">Inglese</string>
+    <string name="persian">Persiano</string>
+    <string name="italian">Italiano</string>
+    <string name="select_language">Seleziona Lingua</string>
+    <string name="app_name">Note Sicure</string>
+    <string name="enter_pin">Inserisci PIN</string>
+    <string name="set_pin">Imposta PIN e domanda di sicurezza</string>
+    <string name="pin_label">PIN (4 cifre)</string>
+    <string name="security_question_label">Domanda di sicurezza</string>
+    <string name="security_answer_label">La tua risposta</string>
+    <string name="submit">Conferma</string>
+    <string name="login">Accedi</string>
+    <string name="forgot_pin">PIN dimenticato / Reimposta</string>
+    <string name="wrong_pin">PIN errato</string>
+    <string name="question_prompt">Domanda di sicurezza:</string>
+    <string name="confirm_answer">Conferma risposta</string>
+    <string name="new_pin">Nuovo PIN</string>
+    <string name="notes_list">Le tue note</string>
+    <string name="logout">Disconnetti</string>
+    <string name="error_invalid_input">Si prega di compilare correttamente tutti i campi.</string>
+    <string name="no_security_question">Non ci sono domande di sicurezza!</string>
+    <string name="wrong_answer">Risposta sbagliata!</string>
+    <string name="set_new_pin">imposta nuovo pin</string>
+    <string name="pin_length_error">Il PIN è corto.</string>
+    <string name="your_notes">Le tue note</string>
+    <string name="no_notes_found">Nessuna nota trovata.</string>
+    <string name="save">salva</string>
+    <string name="cancel">annulla</string>
+    <string name="size">taglia</string>
+    <string name="color">colore</string>
+</resources>

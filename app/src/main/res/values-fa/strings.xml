@@ -1,0 +1,32 @@
+<resources>
+    <string name="english">انگلیسی</string>
+    <string name="persian">فارسی</string>
+    <string name="italian">ایتالیایی</string>
+    <string name="select_language">انتخاب زبان</string>
+    <string name="app_name">یادداشت‌های امن</string>
+    <string name="enter_pin">ورود با پین</string>
+    <string name="set_pin">ثبت پین و سوال امنیتی</string>
+    <string name="pin_label">PIN (رقم 4)</string>
+    <string name="security_question_label">سوال امنیتی شما</string>
+    <string name="security_answer_label">پاسخ به سوال امنیتی</string>
+    <string name="submit">ثبت</string>
+    <string name="login">ورود</string>
+    <string name="forgot_pin">فراموشی / ریست پین</string>
+    <string name="wrong_pin">  پین اشتباه است</string>
+    <string name="question_prompt">سوال امنیتی:</string>
+    <string name="confirm_answer">تایید پاسخ</string>
+    <string name="new_pin">  پین جدید</string>
+    <string name="notes_list">لیست یادداشت‌ها</string>
+    <string name="logout">خروج</string>
+    <string name="error_invalid_input">لطفا تمام فیلدها رو پر کنید.</string>
+    <string name="no_security_question">هیچ سوال امنیتی وجود ندارد!</string>
+    <string name="wrong_answer">پاسخ اشتباه!</string>
+    <string name="set_new_pin">تنظیم پین جدید</string>
+    <string name="pin_length_error">پین کوتاه است</string>
+    <string name="your_notes">یادداشت های شما</string>
+    <string name="no_notes_found">هیچ یادداشتی یافت نشد.</string>
+    <string name="save">ذخیره</string>
+    <string name="cancel">لفو</string>
+    <string name="size">سایز</string>
+    <string name="color">رنگ</string>
+</resources>
