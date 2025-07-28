@@ -1,133 +1,90 @@
 package bluebirdstudio.app.securenotespinlock.screens
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import bluebirdstudio.app.securenotespinlock.AppScreen
+import bluebirdstudio.app.securenotespinlock.model.AuthViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import bluebirdstudio.app.securenotespinlock.R
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResetPinScreen(
-    context: Context,
-    onResetSuccess: () -> Unit
-) {
-    val prefs = context.getSharedPreferences("SecureNotesPrefs", Context.MODE_PRIVATE)
-    val question = prefs.getString("security_question", stringResource(R.string.no_security_question))
-    val savedAnswer = prefs.getString("security_answer", "") ?: ""
-
+fun ResetPinScreen(navController: NavController, viewModel: AuthViewModel) {
+    val question by viewModel.securityQuestion.collectAsState()
     var answer by remember { mutableStateOf("") }
     var newPin by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-    var step by remember { mutableStateOf(1) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
+    val wrongAnswerMsg = stringResource(R.string.wrong_answer)
+    val pinLengthErrorMsg = stringResource(R.string.pin_length_error)
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .widthIn(max = 400.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.fillMaxWidth(0.85f)
             ) {
-                if (step == 1) {
-                    Text(
-                        text = stringResource(R.string.security_answer_label),
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                Text(text = "${stringResource(R.string.question_prompt)} $question")
 
-                    Text(
-                        text = question ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    )
+                TextField(
+                    value = answer,
+                    onValueChange = { answer = it },
+                    label = { Text(stringResource(R.string.security_answer_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                TextField(
+                    value = newPin,
+                    onValueChange = { newPin = it },
+                    label = { Text(stringResource(R.string.new_pin)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
 
-                    OutlinedTextField(
-                        value = answer,
-                        onValueChange = { answer = it },
-                        label = { Text(stringResource(R.string.security_answer_label)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    if (message.isNotEmpty()) {
-                        Text(
-                            text = message,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    val wrongAnswerMessage = stringResource(R.string.wrong_answer)
-                    Button(
-                        onClick = {
-                            if (answer.trim().lowercase() == savedAnswer.lowercase()) {
-                                step = 2
-                                message = ""
-                            } else {
-                                message = wrongAnswerMessage
+                Button(
+                    onClick = {
+                        when {
+                            !viewModel.verifySecurityAnswer(answer) -> {
+                                scope.launch { snackbarHostState.showSnackbar(wrongAnswerMsg) }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.confirm_answer))
-                    }
-                } else {
-                    Text(
-                        text = stringResource(R.string.set_new_pin),
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = newPin,
-                        onValueChange = { if (it.length <= 4) newPin = it },
-                        label = { Text(stringResource(R.string.pin_label)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    if (message.isNotEmpty()) {
-                        Text(
-                            text = message,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    val wrongPINLengthMessage = stringResource(R.string.pin_length_error)
-                    Button(
-                        onClick = {
-                            if (newPin.length == 4) {
-                                prefs.edit().putString("user_pin", newPin).apply()
-                                onResetSuccess()
-                            } else {
-                                message = wrongPINLengthMessage
+                            newPin.length < 4 -> {
+                                scope.launch { snackbarHostState.showSnackbar(pinLengthErrorMsg) }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.submit))
-                    }
+                            else -> {
+                                viewModel.resetPin(newPin)
+                                navController.navigate(AppScreen.Login.route) {
+                                    popUpTo(AppScreen.Reset.route) { inclusive = true }
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(stringResource(R.string.submit))
                 }
             }
         }

@@ -1,13 +1,10 @@
 package bluebirdstudio.app.securenotespinlock
 
-import bluebirdstudio.app.securenotespinlock.model.Note
+sealed class AppScreen(val route: String) {
+    object Registration : AppScreen("registration")
+    object Login : AppScreen("login")
+    object Notes : AppScreen("notes")
+    object Reset : AppScreen("reset")
 
-
-
-sealed class AppScreen {
-    object Registration : AppScreen()
-    object Login : AppScreen()
-    object Notes : AppScreen()
-    object Reset : AppScreen()
-    data class AddNote(val note: Note? = null) : AppScreen()
+    data class AddEditNote(val noteId: Int? = null) : AppScreen("add_edit_note/${noteId ?: -1}")
 }

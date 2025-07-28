@@ -1,349 +1,171 @@
 package bluebirdstudio.app.securenotespinlock.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
-import androidx.compose.material.icons.automirrored.filled.FormatAlignRight
-
-
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-import androidx.compose.material.icons.filled.*
-
-
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import bluebirdstudio.app.securenotespinlock.model.Note
-import bluebirdstudio.app.securenotespinlock.R
-import bluebirdstudio.app.securenotespinlock.data.NoteRepository
-import bluebirdstudio.app.securenotespinlock.model.NotesViewModel
+import bluebirdstudio.app.securenotespinlock.viewmodel.NotesViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditNoteScreen(
-    viewModel: NotesViewModel,
-    note: Note? = null,
-    onSave: () -> Unit,
-    onCancel: () -> Unit
+    navController: NavController,
+    noteId: Int?,
+    viewModel: NotesViewModel
 ) {
-    var content by remember {
-        mutableStateOf(TextFieldValue(note?.content ?: ""))
+    val note by viewModel.currentNote.collectAsState()
+
+    var title by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+
+    var isBold by remember { mutableStateOf(false) }
+    var isItalic by remember { mutableStateOf(false) }
+
+
+    var showExitDialog by remember { mutableStateOf(false) }
+
+// مقادیر اولیه
+    var initialTitle by remember { mutableStateOf("") }
+    var initialContent by remember { mutableStateOf("") }
+
+    // Load Note if editing
+    LaunchedEffect(noteId) {
+        if (noteId != null) {
+            viewModel.loadNoteById(noteId)
+        } else {
+            viewModel.resetCurrentNote()
+        }
     }
 
-    var fontSize by remember { mutableStateOf(note?.fontSize ?: 16) }
-    var textColor by remember {
-        mutableStateOf(
-            note?.textColor?.let { Color(note.textColor.toULong())
-            } ?: Color.Black
-        )
+
+    // Populate fields when note is loaded
+    LaunchedEffect(note) {
+        note?.let {
+            title = it.title
+            content = it.content
+            initialTitle = it.title
+            initialContent = it.content
+        }
     }
 
+    val isChanged = title != initialTitle || content != initialContent
 
-
-    var alignment by remember { mutableStateOf(note?.textAlign ?: "Start") }
-    var isBold by remember { mutableStateOf(note?.isBold ?: false) }
-
-    // Dropdown menus state
-    var showFontSizeMenu by remember { mutableStateOf(false) }
-    var showColorMenu by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-//            .padding(8.dp)
-            .verticalScroll(rememberScrollState())
-            .imePadding()
-    ) {
-
-        // ----- Toolbar -----
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF0F0F0))
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Font Size Picker
-            Box {
-                OutlinedButton(onClick = { showFontSizeMenu = true }) {
-//                    Text("Size: $fontSize")
-                    Text(stringResource(id = R.string.size) + ": $fontSize")
-                }
-                DropdownMenu(
-                    expanded = showFontSizeMenu,
-                    onDismissRequest = { showFontSizeMenu = false }
-                ) {
-                    listOf(12, 14, 16, 18, 20, 24, 28, 32).forEach {
-                        DropdownMenuItem(
-                            text = { Text(it.toString()) },
-                            onClick = {
-                                fontSize = it
-                                showFontSizeMenu = false
-                            }
-                        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(if (noteId == null) "New Note" else "Edit Note") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        if (isChanged) {
+                            showExitDialog = true
+                        } else {
+                            viewModel.resetCurrentNote()
+                            navController.popBackStack()
+                        }
+                    }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                }
-            }
-
-            // Color Picker
-            val colors = listOf(
-                Color.Black to "Black",
-                Color.Red to "Red",
-                Color.Blue to "Blue",
-                Color.Green to "Green",
-                Color.Gray to "Gray"
-            )
-
-            Box {
-                OutlinedButton(onClick = { showColorMenu = true }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .background(textColor, shape = CircleShape)
-                                .border(1.dp, Color.Gray, CircleShape)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(id = R.string.color))
-                    }
-                }
-                DropdownMenu(
-                    expanded = showColorMenu,
-                    onDismissRequest = { showColorMenu = false }
-                ) {
-                    colors.forEach { (color, name) ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        Modifier
-                                            .size(20.dp)
-                                            .background(color, CircleShape)
-                                            .border(1.dp, Color.DarkGray, CircleShape)
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(name)
+                    if (showExitDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showExitDialog = false },
+                            title = { Text("Discard changes?") },
+                            text = { Text("You have unsaved changes. Are you sure you want to go back?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    viewModel.resetCurrentNote()
+                                    navController.popBackStack()
+                                }) {
+                                    Text("Discard")
                                 }
                             },
-                            onClick = {
-                                textColor = color
-                                showColorMenu = false
+                            dismissButton = {
+                                TextButton(onClick = { showExitDialog = false }) {
+                                    Text("Cancel")
+                                }
                             }
                         )
                     }
-                }
-            }
 
 
-            // Bold Toggle
-            IconToggleButton(
-                checked = isBold,
-                onCheckedChange = { isBold = it }
-            ) {
-                Text("B", fontWeight = FontWeight.Bold)
-            }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        viewModel.saveNote(
+                            Note(
+                                id = note?.id ?: 0,
+                                title = title,
+                                content = content
+                            )
+                        )
+                        viewModel.resetCurrentNote()
+                        navController.popBackStack()
 
-            // Alignment Buttons
-//            IconButton(onClick = { alignment = TextAlign.Start }) {
-//                Icon(
-//                    imageVector = Icons.AutoMirrored.Filled.FormatAlignLeft,
-//                    contentDescription = "Align Start"
-//                )
-//            }
-//            IconButton(onClick = { alignment = TextAlign.Center }) {
-//                Icon(
-//                    imageVector = Icons.Default.FormatAlignCenter,
-//                    contentDescription = "Align Center"
-//                )
-//            }
-//            IconButton(onClick = { alignment = TextAlign.End }) {
-//                Icon(
-//                    imageVector = Icons.AutoMirrored.Filled.FormatAlignRight,
-//                    contentDescription = "Align End"
-//                )
-//            }
-            AlignmentDropdown(
-                selectedAlignment = alignment,
-                onAlignmentSelected = { alignment = it }
-            )
-
-
-
-
-
-
-
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // ----- Editor Area -----
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .border(1.dp, Color.Gray)
-                .background(Color.White)
-                .padding(12.dp)
-        ) {
-            BasicTextField(
-                value = content,
-                onValueChange = { content = it },
-                textStyle = TextStyle(
-                    color = textColor,
-                    fontSize = fontSize.sp,
-                    fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                    textAlign = when (alignment) {
-                        "Center" -> TextAlign.Center
-                        "End" -> TextAlign.End
-                        "Right" -> TextAlign.End
-                        "Left" -> TextAlign.Start
-                        else -> TextAlign.Start
+                    }) {
+                        Icon(Icons.Default.Check, contentDescription = "Save")
                     }
-                ),
-                modifier = Modifier.fillMaxSize()
+                }
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // ----- Save / Cancel Buttons -----
-        Row(
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            Button(onClick = {
-                val trimmedContent = content.text.trim()
-                val generatedTitle = if (trimmedContent.isNotBlank()) {
-                    trimmedContent.lineSequence().firstOrNull()?.take(30) ?: ""
-                } else {
-                    ""
-                }
+            // Title Field
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Title") },
+                textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            )
 
-                val newNote = note?.copy(
-                    title = generatedTitle,
-                    content = trimmedContent,
-                    textColor = textColor.value.toLong(),
-                    fontSize = fontSize,
-                    textAlign = alignment,
-                    isBold = isBold
-                ) ?: Note(
-                    title = generatedTitle,
-                    content = trimmedContent,
-                    category = "",
-                    textColor = textColor.value.toLong(),
-                    backgroundColor = 0xFFFFFFFF,
-                    fontSize = fontSize,
-                    textAlign = alignment,
-                    isBold = false
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Toolbar for text styles
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                IconButton(onClick = { isBold = !isBold }) {
+                    Text("B", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                }
+                IconButton(onClick = { isItalic = !isItalic }) {
+                    Text("I", fontStyle = FontStyle.Italic, fontSize = 20.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Content Field with selection + style
+            SelectionContainer {
+                BasicTextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    textStyle = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
+                        fontStyle = if (isItalic) FontStyle.Italic else FontStyle.Normal,
+                        color = Color.Black
+                    )
                 )
-
-                if (note == null) viewModel.addNote(newNote)
-                else viewModel.updateNote(newNote)
-
-                onSave()
-            }) { Text(stringResource(id = R.string.save)) }
-
-            Button(onClick = onCancel) { Text(stringResource(id = R.string.cancel)) }
-        }
-    }
-}
-@Composable
-fun AlignmentDropdown(
-    selectedAlignment: String,
-    onAlignmentSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    // Helper function to get the right icon
-    fun alignmentIcon(alignment: String): ImageVector {
-        return when (alignment) {
-            "Start" -> Icons.AutoMirrored.Filled.FormatAlignLeft
-            "Center" -> Icons.Default.FormatAlignCenter
-            "End" -> Icons.AutoMirrored.Filled.FormatAlignRight
-            else -> Icons.Default.FormatAlignCenter
-        }
-    }
-
-
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = alignmentIcon(selectedAlignment),
-                contentDescription = "Alignment"
-            )
-        }
-
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.FormatAlignLeft,
-                        contentDescription = "Align Left"
-                    )
-                },
-                onClick = {
-                    onAlignmentSelected("Left")
-                    expanded = false
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Icon(
-                        imageVector = Icons.Default.FormatAlignCenter,
-                        contentDescription = "Align Center"
-                    )
-                },
-                onClick = {
-                    onAlignmentSelected("Center")
-                    expanded = false
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.FormatAlignRight,
-                        contentDescription = "Align Right"
-                    )
-                },
-                onClick = {
-                    onAlignmentSelected("Right")
-                    expanded = false
-                }
-            )
+            }
         }
     }
 }

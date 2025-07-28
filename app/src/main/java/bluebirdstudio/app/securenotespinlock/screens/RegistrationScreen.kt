@@ -1,121 +1,94 @@
 package bluebirdstudio.app.securenotespinlock.screens
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import bluebirdstudio.app.securenotespinlock.AppScreen
+import bluebirdstudio.app.securenotespinlock.model.AuthViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import bluebirdstudio.app.securenotespinlock.R
-import bluebirdstudio.app.securenotespinlock.ui.theme.LanguageSelector
+import kotlinx.coroutines.launch
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(
-    context: Context,
-    onRegistered: () -> Unit
-) {
-    val prefs = context.getSharedPreferences("SecureNotesPrefs", Context.MODE_PRIVATE)
+fun RegistrationScreen(navController: NavController, viewModel: AuthViewModel) {
     var pin by remember { mutableStateOf("") }
     var question by remember { mutableStateOf("") }
     var answer by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
+    val invalidInputMsg = stringResource(R.string.error_invalid_input)
+    val pinLengthErrorMsg = stringResource(R.string.pin_length_error)
 
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-
-    ) {
-//        // دکمه انتخاب زبان بالای صفحه
-//        LanguageSelector(
-//            modifier = Modifier.align(Alignment.Start)
-//        )
-
-        Spacer(Modifier.height(24.dp))
-
-        // کارت ورودی ها
-        Card(
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            elevation = CardDefaults.cardElevation(6.dp)
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.fillMaxWidth(0.85f)
             ) {
-                Text(
-                    text = stringResource(R.string.set_pin),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-
-                Spacer(Modifier.height(16.dp))
-                OutlinedTextField(
+                TextField(
                     value = pin,
-                    onValueChange = { if (it.length <= 4) pin = it },
+                    onValueChange = { pin = it },
                     label = { Text(stringResource(R.string.pin_label)) },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
-
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                TextField(
                     value = question,
                     onValueChange = { question = it },
                     label = { Text(stringResource(R.string.security_question_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
-
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                TextField(
                     value = answer,
                     onValueChange = { answer = it },
                     label = { Text(stringResource(R.string.security_answer_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
-                if (message.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                }
-
-                Spacer(Modifier.height(16.dp))
-                val wrongInvalidInputMessage = stringResource(R.string.error_invalid_input)
                 Button(
                     onClick = {
-                        if (pin.length == 4 && question.isNotBlank() && answer.isNotBlank()) {
-                            prefs.edit()
-                                .putString("user_pin", pin)
-                                .putString("security_question", question)
-                                .putString("security_answer", answer.lowercase())
-                                .apply()
-                            onRegistered()
-                        } else {
-                            message = wrongInvalidInputMessage
+                        when {
+                            pin.isBlank() || question.isBlank() || answer.isBlank() -> {
+                                scope.launch { snackbarHostState.showSnackbar(invalidInputMsg) }
+                            }
+                            pin.length < 4 -> {
+                                scope.launch { snackbarHostState.showSnackbar(pinLengthErrorMsg) }
+                            }
+                            else -> {
+                                viewModel.register(pin, question, answer)
+                                navController.navigate(AppScreen.Login.route) {
+                                    popUpTo(AppScreen.Registration.route) { inclusive = true }
+                                }
+                            }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = MaterialTheme.shapes.medium
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = stringResource(R.string.submit))
+                    Text(stringResource(R.string.submit))
                 }
             }
         }

@@ -1,39 +1,28 @@
 package bluebirdstudio.app.securenotespinlock.screens
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.FloatingActionButton
-//import androidx.compose.material3.icons.Icons
-//import androidx.compose.material3.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import bluebirdstudio.app.securenotespinlock.R
 import bluebirdstudio.app.securenotespinlock.model.Note
 import bluebirdstudio.app.securenotespinlock.model.NoteItem
-import bluebirdstudio.app.securenotespinlock.model.NotesViewModel
-import bluebirdstudio.app.securenotespinlock.model.NoteItem
+import bluebirdstudio.app.securenotespinlock.viewmodel.NotesViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +35,9 @@ fun NoteListScreen(
     onDeleteNote: (Note) -> Unit
 ) {
     val notes by viewModel.notes.collectAsState()
+
+    var noteToDelete by remember { mutableStateOf<Note?>(null) }
+
 
     LaunchedEffect(Unit) {
         viewModel.loadNotes()
@@ -75,7 +67,10 @@ fun NoteListScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text(stringResource(id = R.string.no_notes_found))
+                Text(
+                    text = stringResource(id = R.string.no_notes_found),
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
         } else {
             LazyColumn(
@@ -86,11 +81,33 @@ fun NoteListScreen(
                     NoteItem(
                         note = note,
                         onClick = { onEditNote(note) },
-                        onDelete = { onDeleteNote(note) }
+                        onDelete = { noteToDelete = note } // فقط state رو ست کن، نه حذف مستقیم
                     )
+
                 }
             }
         }
-
     }
+
+    if (noteToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { noteToDelete = null },
+            title = { Text("Delete note?") },
+            text = { Text("Are you sure you want to delete this note?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteNote(noteToDelete!!)
+                    noteToDelete = null
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { noteToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }

@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 data class Note(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
     var title: String = "",
-    var content: String = "",
+    var content: String = "", // حالا محتوای Markdown
     var category: String = "",
     var textColor: Long = 0xFF000000,
     var backgroundColor: Long = 0xFFFFFFFF,

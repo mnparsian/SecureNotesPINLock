@@ -1,19 +1,13 @@
 package bluebirdstudio.app.securenotespinlock.model
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,48 +29,47 @@ fun NoteItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            if (note.title.isNotBlank()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = note.title,
+                    text = if (note.title.isNotBlank()) note.title else previewText,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
-                if (previewText != note.title) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = previewText,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        maxLines = 2
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Note",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
-            } else {
+            }
+
+            if (note.title.isNotBlank() && previewText != note.title) {
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = previewText,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 3
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 2
                 )
             }
-
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
-            }
         }
-
-
     }
 }

@@ -19,4 +19,20 @@ class NoteRepository(private val noteDao: NoteDao) {
     suspend fun deleteNote(note: Note) {
         noteDao.deleteNote(note)
     }
+
+    suspend fun getNoteById(id: Int): Note? {
+        return noteDao.getNoteById(id)
+    }
+
+    suspend fun upsertNote(note: Note) {
+        if (note.id == 0) {
+            noteDao.insertNote(note)
+        } else {
+            noteDao.updateNote(note)
+        }
+    }
+
+
+
+
 }
