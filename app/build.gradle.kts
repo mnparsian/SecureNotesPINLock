@@ -127,7 +127,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-webview:0.32.0")
 
 
-
+    implementation("com.github.yalantis:ucrop:2.2.8")
 
 }
 

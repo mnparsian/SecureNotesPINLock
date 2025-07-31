@@ -20,11 +20,13 @@ fun NoteItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val previewText = note.content
+    val plainText = note.content.replace(Regex("<.*?>"), "") // حذف تگ‌های HTML
+    val previewText = plainText
         .lines()
         .take(2)
         .joinToString(" ")
         .let { if (it.length > 100) it.take(100) + "..." else it }
+
 
     Card(
         modifier = Modifier
