@@ -1,24 +1,23 @@
 package bluebirdstudio.app.securenotespinlock.screens
 
+import android.view.View
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import bluebirdstudio.app.securenotespinlock.model.Note
-import bluebirdstudio.app.securenotespinlock.viewmodel.NotesViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
+import bluebirdstudio.app.securenotespinlock.model.Note
+import bluebirdstudio.app.securenotespinlock.model.NotesViewModel
+import bluebirdstudio.app.securenotespinlock.ui.components.RichTextEditor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,19 +29,13 @@ fun AddEditNoteScreen(
     val note by viewModel.currentNote.collectAsState()
 
     var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
-
-    var isBold by remember { mutableStateOf(false) }
-    var isItalic by remember { mutableStateOf(false) }
-
+    var formattedContent by remember { mutableStateOf("") }
 
     var showExitDialog by remember { mutableStateOf(false) }
 
-// مقادیر اولیه
     var initialTitle by remember { mutableStateOf("") }
     var initialContent by remember { mutableStateOf("") }
 
-    // Load Note if editing
     LaunchedEffect(noteId) {
         if (noteId != null) {
             viewModel.loadNoteById(noteId)
@@ -51,18 +44,16 @@ fun AddEditNoteScreen(
         }
     }
 
-
-    // Populate fields when note is loaded
     LaunchedEffect(note) {
         note?.let {
             title = it.title
-            content = it.content
+            formattedContent = it.content
             initialTitle = it.title
             initialContent = it.content
         }
     }
 
-    val isChanged = title != initialTitle || content != initialContent
+    val isChanged = title != initialTitle || formattedContent != initialContent
 
     Scaffold(
         topBar = {
@@ -79,28 +70,6 @@ fun AddEditNoteScreen(
                     }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                    if (showExitDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showExitDialog = false },
-                            title = { Text("Discard changes?") },
-                            text = { Text("You have unsaved changes. Are you sure you want to go back?") },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    viewModel.resetCurrentNote()
-                                    navController.popBackStack()
-                                }) {
-                                    Text("Discard")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showExitDialog = false }) {
-                                    Text("Cancel")
-                                }
-                            }
-                        )
-                    }
-
-
                 },
                 actions = {
                     IconButton(onClick = {
@@ -108,12 +77,11 @@ fun AddEditNoteScreen(
                             Note(
                                 id = note?.id ?: 0,
                                 title = title,
-                                content = content
+                                content = formattedContent
                             )
                         )
                         viewModel.resetCurrentNote()
                         navController.popBackStack()
-
                     }) {
                         Icon(Icons.Default.Check, contentDescription = "Save")
                     }
@@ -127,7 +95,7 @@ fun AddEditNoteScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Title Field
+            // Title
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -136,36 +104,63 @@ fun AddEditNoteScreen(
                 textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Toolbar for text styles
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                IconButton(onClick = { isBold = !isBold }) {
-                    Text("B", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                }
-                IconButton(onClick = { isItalic = !isItalic }) {
-                    Text("I", fontStyle = FontStyle.Italic, fontSize = 20.sp)
-                }
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Content Field with selection + style
-            SelectionContainer {
-                BasicTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    textStyle = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                        fontStyle = if (isItalic) FontStyle.Italic else FontStyle.Normal,
-                        color = Color.Black
-                    )
-                )
+            // Toolbar بالایی برای ابزارهای اضافی
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                IconButton(onClick = { /* TODO: OCR */ }) {
+                    Icon(Icons.Default.Check, contentDescription = "OCR")
+                }
+                IconButton(onClick = { /* TODO: Voice to Text */ }) {
+                    Icon(Icons.Default.Check, contentDescription = "Voice")
+                }
+                IconButton(onClick = { /* TODO: AI Suggestions */ }) {
+                    Icon(Icons.Default.Check, contentDescription = "AI")
+                }
+                IconButton(onClick = { /* TODO: Insert Image */ }) {
+                    Icon(Icons.Default.Check, contentDescription = "Image")
+                }
             }
+
+            // Rich Text Editor (Toolbar نوشتاری داخل HTML)
+            RichTextEditor(
+                initialContent = formattedContent,
+                onContentChanged = { newContent -> formattedContent = newContent },
+                modifier = Modifier.fillMaxSize(),
+                onWebViewCreated = { webView ->
+                    ViewCompat.setOnApplyWindowInsetsListener(webView) { _: View, insets ->
+                        val isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+                        webView.evaluateJavascript("setKeyboardState($isKeyboardVisible)", null)
+                        insets
+                    }
+                }
+            )
         }
+    }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Discard changes?") },
+            text = { Text("You have unsaved changes. Are you sure you want to go back?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.resetCurrentNote()
+                    navController.popBackStack()
+                }) {
+                    Text("Discard")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

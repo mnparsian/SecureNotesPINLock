@@ -1,4 +1,4 @@
-package bluebirdstudio.app.securenotespinlock.viewmodel
+package bluebirdstudio.app.securenotespinlock.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

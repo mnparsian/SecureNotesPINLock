@@ -120,7 +120,11 @@ dependencies {
 //    implementation("com.github.halilozercan:compose-richtext:0.17.0")
     implementation("com.github.halilozercan.compose-richtext:richtext-commonmark-android:0.17.0")
 
+    // برای WebView
+    implementation("androidx.webkit:webkit:1.8.0")
 
+    // برای بهتر کار کردن با WebView در Compose
+    implementation("com.google.accompanist:accompanist-webview:0.32.0")
 
 
 

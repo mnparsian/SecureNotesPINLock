@@ -20,7 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import bluebirdstudio.app.securenotespinlock.R
 import bluebirdstudio.app.securenotespinlock.model.Note
 import bluebirdstudio.app.securenotespinlock.model.NoteItem
-import bluebirdstudio.app.securenotespinlock.viewmodel.NotesViewModel
+import bluebirdstudio.app.securenotespinlock.model.NotesViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
